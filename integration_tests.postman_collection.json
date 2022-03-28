@@ -1,0 +1,1547 @@
+{
+	"info": {
+		"_postman_id": "a4d9d1b9-5f93-47ab-bf7e-edb73f605cfe",
+		"name": "Integration Tests Lab 4",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get UF value from 'mindicador.cl'",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json()",
+							"pm.collectionVariables.set(\"valor-uf\", jsonData.serie[0].valor)",
+							"// pm.environment.set(\"valor-uf\", jsonData.serie[0].valor)"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let date = new Date()",
+							"let day = date.getDate()",
+							"let month = date.getMonth() + 1",
+							"let year = date.getFullYear()",
+							"if(month < 10)",
+							"    pm.collectionVariables.set(\"fecha-uf\", `${day}-0${month}-${year}`)",
+							"else",
+							"    pm.collectionVariables.set(\"fecha-uf\", `${day}-${month}-${year}`)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://mindicador.cl/api/uf/{{fecha-uf}}",
+					"protocol": "https",
+					"host": [
+						"mindicador",
+						"cl"
+					],
+					"path": [
+						"api",
+						"uf",
+						"{{fecha-uf}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Withdrawal with savings less than 35 UF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = ahorro;",
+							"var saldo = 0;",
+							"var impuesto = 0;",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(30 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Withdrawal with savings between 35 and 350 UF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(35 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = 0;",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(200 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Withdrawal with savings between 350 and 1500 UF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(ahorro * 0.1);",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = 0;",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(925 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Withdrawal with savings greater than 1500 UF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = 0;",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message with salary less than zero (0)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(\"sueldo deben ser igual o mayor a 0\");",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", -1);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(200 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message with salary greater than max integer value",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(`Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: \\\"${pm.collectionVariables.get(\"sueldo\")}\\\"`);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", Number.MAX_SAFE_INTEGER);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1000 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message with savings less than zero (0)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(\"ahorro deben ser igual o mayor a 0\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", -1);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message with savings greater than max integer value",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(`Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: \\\"${pm.collectionVariables.get(\"ahorro\")}\\\"`);",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Number.MAX_SAFE_INTEGER);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message without 'ahorro' parameter",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(\"Required Integer parameter 'ahorro' is not present\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate message without 'sueldo' parameter",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Validate error message\", function () {",
+							"    pm.expect(jsonData.message).to.eql(\"Required Integer parameter 'sueldo' is not present\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary less than 1500000",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = 0;",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 1\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_1\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 1600000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 2\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_2\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 2000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 3\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_3\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 3000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 4\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_4\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 4000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 5\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_5\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 5500000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 6\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_6\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 10000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Taxes with salary in \"Tramo 7\"",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var sueldo = parseInt(pm.collectionVariables.get(\"sueldo\"));",
+							"var ahorro = parseInt(pm.collectionVariables.get(\"ahorro\"));",
+							"var timeoutMs = parseInt(pm.collectionVariables.get(\"timeout_ms\"));",
+							"var dxc = Math.round(150 * pm.collectionVariables.get(\"valor-uf\"));",
+							"var saldo = ahorro - dxc;",
+							"var impuesto = Math.round(dxc * pm.collectionVariables.get(\"tramo_7\"));",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(`dxc should be ${dxc}`, function () {",
+							"    pm.expect(jsonData.dxc).to.eql(dxc);",
+							"});",
+							"",
+							"pm.test(`saldo should be ${saldo}`, function () {",
+							"    pm.expect(jsonData.saldo).to.eql(saldo);",
+							"});",
+							"",
+							"pm.test(`impuesto should be ${impuesto}`, function () {",
+							"    pm.expect(jsonData.impuesto).to.eql(impuesto);",
+							"});",
+							"",
+							"pm.test(`sueldo should be ${sueldo}`, function () {",
+							"    pm.expect(jsonData.sueldo).to.eql(sueldo);",
+							"});",
+							"",
+							"pm.test(`ahorro should be ${ahorro}`, function () {",
+							"    pm.expect(jsonData.ahorro).to.eql(ahorro);",
+							"});",
+							"",
+							"pm.test(`Response time is less than ${timeoutMs}ms`, function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(timeoutMs);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"sueldo\", 20000000);",
+							"pm.collectionVariables.set(\"ahorro\", Math.round(1510 * pm.collectionVariables.get(\"valor-uf\")));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/rest/msdxc/dxc?sueldo={{sueldo}}&ahorro={{ahorro}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rest",
+						"msdxc",
+						"dxc"
+					],
+					"query": [
+						{
+							"key": "sueldo",
+							"value": "{{sueldo}}"
+						},
+						{
+							"key": "ahorro",
+							"value": "{{ahorro}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "port",
+			"value": "8081",
+			"type": "string"
+		},
+		{
+			"key": "host",
+			"value": "http://localhost:{{port}}",
+			"type": "string"
+		},
+		{
+			"key": "timeout_ms",
+			"value": "5000",
+			"type": "string"
+		},
+		{
+			"key": "sueldo",
+			"value": 20000000,
+			"type": "string"
+		},
+		{
+			"key": "ahorro",
+			"value": 47894995,
+			"type": "string"
+		},
+		{
+			"key": "fecha-uf",
+			"value": "28-03-2022",
+			"type": "string"
+		},
+		{
+			"key": "valor-uf",
+			"value": 31718.54,
+			"type": "string"
+		},
+		{
+			"key": "tramo_1",
+			"value": "0.04",
+			"type": "string"
+		},
+		{
+			"key": "tramo_2",
+			"value": "0.08",
+			"type": "string"
+		},
+		{
+			"key": "tramo_3",
+			"value": "0.135",
+			"type": "string"
+		},
+		{
+			"key": "tramo_4",
+			"value": "0.23",
+			"type": "string"
+		},
+		{
+			"key": "tramo_5",
+			"value": "0.304",
+			"type": "string"
+		},
+		{
+			"key": "tramo_6",
+			"value": "0.35",
+			"type": "string"
+		},
+		{
+			"key": "tramo_7",
+			"value": "0.4",
+			"type": "string"
+		}
+	]
+}
